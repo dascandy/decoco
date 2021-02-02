@@ -12,11 +12,9 @@ struct GzipCompressorS : Compressor {
     }
   }
   GzipCompressorS(Compressor::Level level, size_t chunkSize)
-  : chunkSize(chunkSize)
+  : strm()
+  , chunkSize(chunkSize)
   {
-    strm.zalloc = nullptr;
-    strm.zfree = nullptr;
-    strm.opaque = nullptr;
     int ret = deflateInit(&strm, compressorLevelToZlib(level));
     assert(ret == Z_OK);
   }
@@ -62,13 +60,9 @@ std::unique_ptr<Compressor> GzipCompressor(Compressor::Level level, size_t chunk
 
 struct GzipDecompressorS : Decompressor {
   GzipDecompressorS(size_t outputChunkSize)
-  : outputChunkSize(outputChunkSize)
+  : strm()
+  , outputChunkSize(outputChunkSize)
   {
-    strm.zalloc = nullptr;
-    strm.zfree = nullptr;
-    strm.opaque = nullptr;
-    strm.avail_in = 0;
-    strm.next_in = nullptr;
     int ret = inflateInit(&strm);
     assert(ret == Z_OK);
   }
