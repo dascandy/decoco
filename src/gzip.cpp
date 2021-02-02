@@ -18,7 +18,7 @@ struct GzipCompressorS : Compressor {
     strm.zfree = nullptr;
     strm.opaque = nullptr;
     int ret = deflateInit(&strm, compressorLevelToZlib(level));
-    assert(ret != Z_OK);
+    assert(ret == Z_OK);
   }
   std::vector<uint8_t> compress(std::span<const uint8_t> in) override {
     std::vector<uint8_t> out;

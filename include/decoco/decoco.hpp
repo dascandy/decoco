@@ -31,5 +31,6 @@ std::unique_ptr<Decompressor> GzipDecompressor(size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> LzmaDecompressor(size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> Bzip2Decompressor(size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> FindDecompressor(std::string_view name, size_t outputChunkSize = 16384);
+std::unique_ptr<Decompressor> SniffDecompressor(std::span<uint8_t> file, size_t outputChunkSize = 16384);
 
 
