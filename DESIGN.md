@@ -12,15 +12,3 @@ A local\_ptr style object, which functions as a local fixed-size allocator for a
 
 Exposing the implementation of the specific compressors would have the advantage of being able to avoid the polymorphic indirection, stack-allocating them and potentially fully inlining them. It is not for free though; it drags in the full definition of all possible compressors supported, it requires development headers for all to be installed (rather than just decoco's header), it expands the view of the compiler enormously slowing it down and giving any tools analyzing the code much more to work with, it fills tools like You-Complete-Me and Intellisense with loads of definitions that are not desired; it creates a lot of macro definitions in the user's space that are unwanted and it makes it hard to keep any promise of compile time for the future.
 
-## Allocations for decompressing and compressing data
-
-While the compressor and decompressor themselves are a single allocation, the actual operations will return a new vector every time. Sadly, this implies that each compression or decompression call will perform one or multiple allocations per invocation. There are not too many alternatives to this:
-
-- Pass in the buffer to use for data output
-- Retain ownership of the returned vector and reuse it for a subsequent call
-
-Passing in the buffer to use would transform the interface to one where the caller determines the space to be used. This might be a good idea eventually; I'm not ruling this one out yet. It does change the function design to one where a parameter is used for the return value.
-
-Retaining ownership of the vector that is returned works badly as the user is not informed that the lifetime of the vector, and the lifetime of the data, are both unclear from the function invocation. This wreaks havoc on the ability to debug any such problems, and as such I don't consider this a worthwhile idea to explore.
-
-
