@@ -50,14 +50,13 @@ std::unique_ptr<Compressor> LzmaCompressor(Compressor::Level level, size_t chunk
 
 struct LzmaDecompressorS : Decompressor {
   LzmaDecompressorS(size_t outputChunkSize)
-  : strm()
-  , outputChunkSize(outputChunkSize)
+  : Decompressor(outputChunkSize)
+  , strm()
   {
     int ret = lzma_stream_decoder(&strm, UINT64_MAX, 0);
     assert(ret == LZMA_OK);
   }
-  std::vector<uint8_t> decompress(std::span<const uint8_t> in) override {
-    std::vector<uint8_t> out;
+  size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (strm.avail_in == 0) {
       strm.next_in = in.data();
       strm.avail_in = in.size();
@@ -66,19 +65,16 @@ struct LzmaDecompressorS : Decompressor {
       std::terminate();
     }
 
-    out.resize(outputChunkSize);
     strm.avail_out = out.size();
     strm.next_out = out.data();
     int ret = lzma_code(&strm, LZMA_RUN);
     assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
-    out.resize(outputChunkSize - strm.avail_out);
-    return out;
+    return out.size() - strm.avail_out;
   }
   ~LzmaDecompressorS() {
     lzma_end(&strm);
   }
   lzma_stream strm;
-  size_t outputChunkSize;
 };
 
 std::unique_ptr<Decompressor> LzmaDecompressor(size_t outputChunkSize) { return std::make_unique<LzmaDecompressorS>(outputChunkSize); }

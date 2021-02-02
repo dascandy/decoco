@@ -28,6 +28,15 @@ std::vector<uint8_t> Compressor::flush() {
   return out;
 }
 
+std::vector<uint8_t> Decompressor::decompress(std::span<const uint8_t> in) {
+  std::vector<uint8_t> out;
+  out.resize(outputChunkSize);
+  size_t written = decompress(in, out);
+  out.resize(written);
+  return out;
+}
+
+
 }
 
 

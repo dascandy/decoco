@@ -50,14 +50,13 @@ std::unique_ptr<Compressor> Bzip2Compressor(Compressor::Level level, size_t chun
 
 struct Bzip2DecompressorS : Decompressor {
   Bzip2DecompressorS(size_t outputChunkSize)
-  : strm()
-  , outputChunkSize(outputChunkSize)
+  : Decompressor(outputChunkSize)
+  , strm()
   {
     int ret = BZ2_bzDecompressInit(&strm, 0, 0);
     assert(ret == BZ_OK);
   }
-  std::vector<uint8_t> decompress(std::span<const uint8_t> in) override {
-    std::vector<uint8_t> out;
+  size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (strm.avail_in == 0) {
       strm.next_in = reinterpret_cast<char*>(const_cast<uint8_t*>(in.data()));
       strm.avail_in = in.size();
@@ -66,19 +65,16 @@ struct Bzip2DecompressorS : Decompressor {
       std::terminate();
     }
 
-    out.resize(outputChunkSize);
     strm.avail_out = out.size();
     strm.next_out = reinterpret_cast<char*>(out.data());
     int ret = BZ2_bzDecompress(&strm);
     assert(ret == BZ_OK || ret == BZ_STREAM_END);
-    out.resize(outputChunkSize - strm.avail_out);
-    return out;
+    return out.size() - strm.avail_out;
   }
   ~Bzip2DecompressorS() {
     BZ2_bzDecompressEnd(&strm);
   }
   bz_stream strm;
-  size_t outputChunkSize;
 };
 
 std::unique_ptr<Decompressor> Bzip2Decompressor(size_t outputChunkSize) { return std::make_unique<Bzip2DecompressorS>(outputChunkSize); }

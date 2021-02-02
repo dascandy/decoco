@@ -28,8 +28,15 @@ private:
 
 class Decompressor {
 public:
-  virtual std::vector<uint8_t> decompress(std::span<const uint8_t> in) = 0;
+  std::vector<uint8_t> decompress(std::span<const uint8_t> in);
+  virtual size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) = 0;
   virtual ~Decompressor() = default;
+protected:
+  Decompressor(size_t outputChunkSize) 
+  : outputChunkSize(outputChunkSize)
+  {}
+private:
+  size_t outputChunkSize;
 };
 
 std::unique_ptr<Compressor> GzipCompressor(Compressor::Level level = Compressor::Level::Balanced, size_t chunkSize = 16384);

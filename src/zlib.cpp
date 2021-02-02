@@ -50,14 +50,13 @@ std::unique_ptr<Compressor> ZlibCompressor(Compressor::Level level, size_t chunk
 
 struct ZlibDecompressorS : Decompressor {
   ZlibDecompressorS(size_t outputChunkSize)
-  : strm()
-  , outputChunkSize(outputChunkSize)
+  : Decompressor(outputChunkSize)
+  , strm()
   {
     int ret = inflateInit(&strm);
     assert(ret == Z_OK);
   }
-  std::vector<uint8_t> decompress(std::span<const uint8_t> in) override {
-    std::vector<uint8_t> out;
+  size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (strm.avail_in == 0) {
       strm.next_in = const_cast<uint8_t*>(in.data());
       strm.avail_in = in.size();
@@ -66,19 +65,16 @@ struct ZlibDecompressorS : Decompressor {
       std::terminate();
     }
 
-    out.resize(outputChunkSize);
     strm.avail_out = out.size();
     strm.next_out = out.data();
     int ret = inflate(&strm, Z_NO_FLUSH);
     assert(ret == Z_OK || ret == Z_STREAM_END);
-    out.resize(outputChunkSize - strm.avail_out);
-    return out;
+    return out.size() - strm.avail_out;
   }
   ~ZlibDecompressorS() {
     inflateEnd(&strm);
   }
   z_stream strm;
-  size_t outputChunkSize;
 };
 
 std::unique_ptr<Decompressor> ZlibDecompressor(size_t outputChunkSize) { return std::make_unique<ZlibDecompressorS>(outputChunkSize); }
