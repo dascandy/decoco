@@ -32,6 +32,7 @@ struct Bzip2CompressorS : Compressor {
       int ret = BZ2_bzCompress(&strm, BZ_RUN);
       assert(ret == BZ_RUN_OK);
     } while (strm.avail_out == 0);
+    out.resize(out.size() - strm.avail_out);
 
     return out;
   }
@@ -45,7 +46,6 @@ struct Bzip2CompressorS : Compressor {
       strm.avail_out = chunkSize;
       strm.next_out = reinterpret_cast<char*>(out.data()) + out.size() - chunkSize;
       int ret = BZ2_bzCompress(&strm, BZ_FINISH);
-      out.resize(out.size() - strm.avail_out);
       if (ret < 0) {
         assert(ret == BZ_FINISH_OK);
         std::terminate();

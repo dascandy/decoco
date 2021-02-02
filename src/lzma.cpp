@@ -32,6 +32,7 @@ struct LzmaCompressorS : Compressor {
       int ret = lzma_code(&strm, LZMA_RUN);
       assert(ret == LZMA_STREAM_END || ret == LZMA_OK);
     } while (strm.avail_out == 0);
+    out.resize(out.size() - strm.avail_out);
 
     return out;
   }
@@ -46,8 +47,8 @@ struct LzmaCompressorS : Compressor {
       strm.next_out = out.data() + out.size() - chunkSize;
       int ret = lzma_code(&strm, LZMA_FINISH);
       assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
-      out.resize(out.size() - strm.avail_out);
     } while (strm.avail_out == 0);
+    out.resize(out.size() - strm.avail_out);
 
     return out;
   }
