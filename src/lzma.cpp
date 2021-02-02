@@ -14,49 +14,36 @@ struct LzmaCompressorS : Compressor {
     }
   }
   LzmaCompressorS(Compressor::Level level, size_t chunkSize)
-  : strm()
-  , chunkSize(chunkSize)
+  : Compressor(chunkSize)
+  , strm()
   {
     int ret = lzma_easy_encoder(&strm, compressorLevelToLzmalib(level), LZMA_CHECK_CRC64);
     assert(ret == LZMA_OK);
   }
-  std::vector<uint8_t> compress(std::span<const uint8_t> in) override {
-    std::vector<uint8_t> out;
-
-    strm.avail_in = in.size();
-    strm.next_in = in.data();
-    do {
-      out.resize(out.size() + chunkSize);
-      strm.avail_out = chunkSize;
-      strm.next_out = out.data() + out.size() - chunkSize;
-      int ret = lzma_code(&strm, LZMA_RUN);
-      assert(ret == LZMA_STREAM_END || ret == LZMA_OK);
-    } while (strm.avail_out == 0);
-    out.resize(out.size() - strm.avail_out);
-
-    return out;
+  size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+    if (!in.empty()) {
+      strm.avail_in = in.size();
+      strm.next_in = in.data();
+    }
+    strm.avail_out = out.size();
+    strm.next_out = out.data();
+    int ret = lzma_code(&strm, LZMA_RUN);
+    assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
+    return out.size() - strm.avail_out;
   }
-  std::vector<uint8_t> flush() override {
-    std::vector<uint8_t> out;
-
-    do {
-      out.resize(out.size() + chunkSize);
-      strm.avail_in = 0;
-      strm.next_in = nullptr;
-      strm.avail_out = chunkSize;
-      strm.next_out = out.data() + out.size() - chunkSize;
-      int ret = lzma_code(&strm, LZMA_FINISH);
-      assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
-    } while (strm.avail_out == 0);
-    out.resize(out.size() - strm.avail_out);
-
-    return out;
+  size_t flush(std::span<uint8_t> out) override {
+    strm.avail_in = 0;
+    strm.next_in = nullptr;
+    strm.avail_out = out.size();
+    strm.next_out = out.data();
+    int ret = lzma_code(&strm, LZMA_FINISH);
+    assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
+    return out.size() - strm.avail_out;
   }
   ~LzmaCompressorS() {
     lzma_end(&strm);
   }
   lzma_stream strm;
-  size_t chunkSize;
 };
 
 std::unique_ptr<Compressor> LzmaCompressor(Compressor::Level level, size_t chunkSize) { return std::make_unique<LzmaCompressorS>(level, chunkSize); }

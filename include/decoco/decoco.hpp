@@ -8,18 +8,26 @@
 
 namespace Decoco {
 
-struct Compressor {
+class Compressor {
+public:
   enum class Level {
     Balanced,
     Fast,
     Small,
   };
-  virtual std::vector<uint8_t> compress(std::span<const uint8_t> in) = 0;
-  virtual std::vector<uint8_t> flush() = 0;
+  std::vector<uint8_t> compress(std::span<const uint8_t> in);
+  virtual size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) = 0;
+  std::vector<uint8_t> flush();
+  virtual size_t flush(std::span<uint8_t> out) = 0;
   virtual ~Compressor() = default;
+protected:
+  Compressor(size_t chunkSize) : chunkSize(chunkSize) {}
+private:
+  size_t chunkSize;
 };
 
-struct Decompressor {
+class Decompressor {
+public:
   virtual std::vector<uint8_t> decompress(std::span<const uint8_t> in) = 0;
   virtual ~Decompressor() = default;
 };

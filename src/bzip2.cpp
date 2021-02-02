@@ -14,54 +14,36 @@ struct Bzip2CompressorS : Compressor {
     }
   }
   Bzip2CompressorS(Compressor::Level level, size_t chunkSize)
-  : strm()
-  , chunkSize(chunkSize)
+  : Compressor(chunkSize)
+  , strm()
   {
     int ret = BZ2_bzCompressInit(&strm, compressorLevelToBZlib(level), 0, 30);
     assert(ret == BZ_OK);
   }
-  std::vector<uint8_t> compress(std::span<const uint8_t> in) override {
-    std::vector<uint8_t> out;
-
-    strm.avail_in = in.size();
-    strm.next_in = const_cast<char*>(reinterpret_cast<const char*>(in.data()));
-    do {
-      out.resize(out.size() + chunkSize);
-      strm.avail_out = chunkSize;
-      strm.next_out = reinterpret_cast<char*>(out.data()) + out.size() - chunkSize;
-      int ret = BZ2_bzCompress(&strm, BZ_RUN);
-      assert(ret == BZ_RUN_OK);
-    } while (strm.avail_out == 0);
-    out.resize(out.size() - strm.avail_out);
-
-    return out;
+  size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+    if (!in.empty()) {
+      strm.avail_in = in.size();
+      strm.next_in = const_cast<char*>(reinterpret_cast<const char*>(in.data()));
+    }
+    strm.avail_out = out.size();
+    strm.next_out = reinterpret_cast<char*>(out.data());
+    int ret = BZ2_bzCompress(&strm, BZ_RUN);
+    assert(ret == BZ_RUN_OK);
+    return out.size() - strm.avail_out;
   }
-  std::vector<uint8_t> flush() override {
-    std::vector<uint8_t> out;
-
-    do {
-      out.resize(out.size() + chunkSize);
-      strm.avail_in = 0;
-      strm.next_in = nullptr;
-      strm.avail_out = chunkSize;
-      strm.next_out = reinterpret_cast<char*>(out.data()) + out.size() - chunkSize;
-      int ret = BZ2_bzCompress(&strm, BZ_FINISH);
-      if (ret < 0) {
-        assert(ret == BZ_FINISH_OK);
-        std::terminate();
-      } else if (ret == BZ_STREAM_END) {
-        out.resize(out.size() - strm.avail_out);
-        return out;
-      }
-    } while (strm.avail_out == 0);
-
-    return out;
+  size_t flush(std::span<uint8_t> out) override {
+    strm.avail_in = 0;
+    strm.next_in = nullptr;
+    strm.avail_out = out.size();
+    strm.next_out = const_cast<char*>(reinterpret_cast<const char*>(out.data()));
+    int ret = BZ2_bzCompress(&strm, BZ_FINISH);
+    assert(ret >= 0);
+    return out.size() - strm.avail_out;
   }
   ~Bzip2CompressorS() {
     BZ2_bzCompressEnd(&strm);
   }
   bz_stream strm;
-  size_t chunkSize;
 };
 
 std::unique_ptr<Compressor> Bzip2Compressor(Compressor::Level level, size_t chunkSize) { return std::make_unique<Bzip2CompressorS>(level, chunkSize); }
