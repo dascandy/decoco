@@ -2,6 +2,8 @@
 #include <bzlib.h>
 #include <assert.h>
 
+namespace Decoco {
+
 struct Bzip2CompressorS : Compressor {
   static int compressorLevelToBZlib(Compressor::Level level) {
     switch(level) {
@@ -98,5 +100,7 @@ struct Bzip2DecompressorS : Decompressor {
 };
 
 std::unique_ptr<Decompressor> Bzip2Decompressor(size_t outputChunkSize) { return std::make_unique<Bzip2DecompressorS>(outputChunkSize); }
+
+}
 
 

@@ -2,6 +2,8 @@
 #include <lzma.h>
 #include <assert.h>
 
+namespace Decoco {
+
 struct LzmaCompressorS : Compressor {
   static int compressorLevelToLzmalib(Compressor::Level level) {
     switch(level) {
@@ -92,5 +94,7 @@ struct LzmaDecompressorS : Decompressor {
 };
 
 std::unique_ptr<Decompressor> LzmaDecompressor(size_t outputChunkSize) { return std::make_unique<LzmaDecompressorS>(outputChunkSize); }
+
+}
 
 

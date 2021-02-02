@@ -1,0 +1,7 @@
+{
+    "catch": {
+        "source": "direct",
+        "url": "https://github.com/evokable/catch",
+        "version": ""
+    }
+}

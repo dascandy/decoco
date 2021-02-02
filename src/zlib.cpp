@@ -4,7 +4,7 @@
 
 namespace Decoco {
 
-struct GzipCompressorS : Compressor {
+struct ZlibCompressorS : Compressor {
   static int compressorLevelToZlib(Compressor::Level level) {
     switch(level) {
       default: 
@@ -13,12 +13,11 @@ struct GzipCompressorS : Compressor {
       case Compressor::Level::Small: return Z_BEST_COMPRESSION;
     }
   }
-  GzipCompressorS(Compressor::Level level, size_t chunkSize)
+  ZlibCompressorS(Compressor::Level level, size_t chunkSize)
   : strm()
   , chunkSize(chunkSize)
   {
-    // Lovely magic values here. See https://zlib.net/manual.html under deflateInit2
-    int ret = deflateInit2(&strm, compressorLevelToZlib(level), Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY);
+    int ret = deflateInit(&strm, compressorLevelToZlib(level));
     assert(ret == Z_OK);
   }
   std::vector<uint8_t> compress(std::span<const uint8_t> in) override {
@@ -53,22 +52,21 @@ struct GzipCompressorS : Compressor {
 
     return out;
   }
-  ~GzipCompressorS() {
+  ~ZlibCompressorS() {
     deflateEnd(&strm);
   }
   z_stream strm;
   size_t chunkSize;
 };
 
-std::unique_ptr<Compressor> GzipCompressor(Compressor::Level level, size_t chunkSize) { return std::make_unique<GzipCompressorS>(level, chunkSize); }
+std::unique_ptr<Compressor> ZlibCompressor(Compressor::Level level, size_t chunkSize) { return std::make_unique<ZlibCompressorS>(level, chunkSize); }
 
-struct GzipDecompressorS : Decompressor {
-  GzipDecompressorS(size_t outputChunkSize)
+struct ZlibDecompressorS : Decompressor {
+  ZlibDecompressorS(size_t outputChunkSize)
   : strm()
   , outputChunkSize(outputChunkSize)
   {
-    // Magic value to tell it to do gzip instead.
-    int ret = inflateInit2(&strm, 31);
+    int ret = inflateInit(&strm);
     assert(ret == Z_OK);
   }
   std::vector<uint8_t> decompress(std::span<const uint8_t> in) override {
@@ -89,14 +87,14 @@ struct GzipDecompressorS : Decompressor {
     out.resize(outputChunkSize - strm.avail_out);
     return out;
   }
-  ~GzipDecompressorS() {
+  ~ZlibDecompressorS() {
     inflateEnd(&strm);
   }
   z_stream strm;
   size_t outputChunkSize;
 };
 
-std::unique_ptr<Decompressor> GzipDecompressor(size_t outputChunkSize) { return std::make_unique<GzipDecompressorS>(outputChunkSize); }
+std::unique_ptr<Decompressor> ZlibDecompressor(size_t outputChunkSize) { return std::make_unique<ZlibDecompressorS>(outputChunkSize); }
 
 }
 
