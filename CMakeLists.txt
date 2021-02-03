@@ -50,12 +50,12 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
 
     # Docs only available if this is the main app
-    find_package(Doxygen)
-    if(Doxygen_FOUND)
-	    add_subdirectory(docs)
-    else()
-	    message(STATUS "Doxygen not found, not building docs")
-    endif()
+    #find_package(Doxygen)
+    #if(Doxygen_FOUND)
+	#    add_subdirectory(docs)
+    #else()
+	#    message(STATUS "Doxygen not found, not building docs")
+    #endif()
 endif()
 
 
@@ -83,7 +83,9 @@ endif()
 
 #FindLibLZMA
 find_package(Threads)
-find_package(libLZMA REQUIRED)
+find_package(LibLZMA REQUIRED)
+find_package(BZip2 REQUIRED)
+find_package(ZLIB REQUIRED)
 add_subdirectory(external)
 add_subdirectory(src)
 
