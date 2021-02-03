@@ -1,0 +1,49 @@
+# Ignore YCM config file (It's generated with cmake)
+.ycm_extra_conf.py
+
+# Ignore conan generator output
+conanbuildinfo.cmake
+conaninfo.txt
+
+# Ignore logs
+*.log
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build
+/build
+
+#vscode
+.vscode
+*-workspace
