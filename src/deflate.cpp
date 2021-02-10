@@ -4,8 +4,8 @@
 
 namespace Decoco {
 
-struct ZlibCompressorS : Compressor {
-  static int compressorLevelToZlib(Compressor::Level level) {
+struct DeflateCompressorS : Compressor {
+  static int compressorLevelToDeflate(Compressor::Level level) {
     switch(level) {
       default: 
       case Compressor::Level::Balanced: return Zlib::Z_DEFAULT_COMPRESSION;
@@ -13,11 +13,11 @@ struct ZlibCompressorS : Compressor {
       case Compressor::Level::Small: return Zlib::Z_BEST_COMPRESSION;
     }
   }
-  ZlibCompressorS(Compressor::Level level, size_t chunkSize)
+  DeflateCompressorS(Compressor::Level level, size_t chunkSize)
   : Compressor(chunkSize)
   , strm()
   {
-    int ret = deflateInit(&strm, compressorLevelToZlib(level));
+    int ret = deflateInit2(&strm, compressorLevelToDeflate(level), Zlib::Z_DEFLATED, -1, 8, Zlib::Z_DEFAULT_STRATEGY);
     assert(ret == Zlib::Z_OK);
   }
   size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
@@ -40,20 +40,20 @@ struct ZlibCompressorS : Compressor {
     assert(ret != Zlib::Z_STREAM_ERROR);
     return out.size() - strm.avail_out;
   }
-  ~ZlibCompressorS() {
+  ~DeflateCompressorS() {
     deflateEnd(&strm);
   }
   Zlib::z_stream strm;
 };
 
-std::unique_ptr<Compressor> ZlibCompressor(Compressor::Level level, size_t chunkSize) { return std::make_unique<ZlibCompressorS>(level, chunkSize); }
+std::unique_ptr<Compressor> DeflateCompressor(Compressor::Level level, size_t chunkSize) { return std::make_unique<DeflateCompressorS>(level, chunkSize); }
 
-struct ZlibDecompressorS : Decompressor {
-  ZlibDecompressorS(size_t outputChunkSize)
+struct DeflateDecompressorS : Decompressor {
+  DeflateDecompressorS(size_t outputChunkSize)
   : Decompressor(outputChunkSize)
   , strm()
   {
-    int ret = inflateInit(&strm);
+    int ret = inflateInit2(&strm, -1);
     assert(ret == Zlib::Z_OK);
   }
   size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
@@ -71,13 +71,13 @@ struct ZlibDecompressorS : Decompressor {
     assert(ret == Zlib::Z_OK || ret == Zlib::Z_STREAM_END);
     return out.size() - strm.avail_out;
   }
-  ~ZlibDecompressorS() {
+  ~DeflateDecompressorS() {
     inflateEnd(&strm);
   }
   Zlib::z_stream strm;
 };
 
-std::unique_ptr<Decompressor> ZlibDecompressor(size_t outputChunkSize) { return std::make_unique<ZlibDecompressorS>(outputChunkSize); }
+std::unique_ptr<Decompressor> DeflateDecompressor(size_t outputChunkSize) { return std::make_unique<DeflateDecompressorS>(outputChunkSize); }
 
 }
 
