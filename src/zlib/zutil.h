@@ -29,14 +29,14 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
   return (strm->msg = ERR_MSG(err), (err))
 /* To be used only when the state is known to be valid */
 
-#define STORED_BLOCK 0
-#define STATIC_TREES 1
-#define DYN_TREES    2
-/* The three kinds of block type */
+enum BlockType {
+  STORED_BLOCK = 0,
+  STATIC_TREES = 1,
+  DYN_TREES = 2,
+};
 
-#define MIN_MATCH  3
-#define MAX_MATCH  258
-/* The minimum and maximum match lengths */
+static constexpr const uint16_t MIN_MATCH = 3;
+static constexpr const uint16_t MAX_MATCH = 258;
 
 #define PRESET_DICT 0x20 /* preset dictionary flag in zlib header */
 

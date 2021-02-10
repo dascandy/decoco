@@ -22,16 +22,6 @@ const char * const z_errmsg[10] = {
     (const char *)""
 };
 
-const char * zlibVersion()
-{
-    return ZLIB_VERSION;
-}
-
-const char * zError(int err)
-{
-    return ERR_MSG(err);
-}
-
 }
 
 
