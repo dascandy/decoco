@@ -8,6 +8,7 @@ std::unique_ptr<Compressor> FindCompressor(std::string_view name, Compressor::Le
   if (name == "lzma") return LzmaCompressor(level, chunkSize);
   if (name == "bzip2") return Bzip2Compressor(level, chunkSize);
   if (name == "zlib") return ZlibCompressor(level, chunkSize);
+  if (name == "deflate") return DeflateCompressor(level, chunkSize);
   return nullptr;
 }
 
@@ -16,6 +17,7 @@ std::unique_ptr<Decompressor> FindDecompressor(std::string_view name, size_t out
   if (name == "lzma") return LzmaDecompressor(outputChunkSize);
   if (name == "bzip2") return Bzip2Decompressor(outputChunkSize);
   if (name == "zlib") return ZlibDecompressor(outputChunkSize);
+  if (name == "deflate") return DeflateDecompressor(outputChunkSize);
   return nullptr;
 }
 
