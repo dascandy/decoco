@@ -54,6 +54,10 @@ std::unique_ptr<Decompressor> Bzip2Decompressor(size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> FindDecompressor(std::string_view name, size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> SniffDecompressor(std::span<uint8_t> file, size_t outputChunkSize = 16384);
 
+std::vector<uint8_t> gzip(std::span<const uint8_t> in);
+std::vector<uint8_t> bzip2(std::span<const uint8_t> in);
+std::vector<uint8_t> xzip(std::span<const uint8_t> in);
+
 }
 
 
