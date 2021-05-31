@@ -1,6 +1,6 @@
 #include <decoco/decoco.hpp>
 
-static std::vector<uint8_t> compress(std::unique_ptr<Compressor> c, std::span<const uint8_t> in) {
+static std::vector<uint8_t> compress(std::unique_ptr<Decoco::Compressor> c, std::span<const uint8_t> in) {
   std::vector<uint8_t> data = c->compress(in);
   std::vector<uint8_t> end = c->flush();
   data.insert(data.end(), end.begin(), end.end());
