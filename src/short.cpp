@@ -19,4 +19,28 @@ std::vector<uint8_t> Decoco::xzip(std::span<const uint8_t> in) {
   return compress(LzmaCompressor(), in);
 }
 
+static std::vector<uint8_t> decompress(std::unique_ptr<Decoco::Decompressor> c, std::span<const uint8_t> in) {
+  std::vector<uint8_t> data;
+  c->decompress(in, data);
+  while (true) {
+    std::vector<uint8_t> nextbit;
+    nextbit.resize(32768);
+    nextbit.resize(c->decompress({}, nextbit));
+    if (nextbit.empty()) return data;
+    data.insert(data.end(), nextbit.begin(), nextbit.end());
+  }
+}
+
+std::vector<uint8_t> Decoco::gunzip(std::span<const uint8_t> in) {
+  return decompress(GzipDecompressor(), in);
+}
+
+std::vector<uint8_t> Decoco::bunzip2(std::span<const uint8_t> in) {
+  return decompress(Bzip2Decompressor(), in);
+}
+
+std::vector<uint8_t> Decoco::xunzip(std::span<const uint8_t> in) {
+  return decompress(LzmaDecompressor(), in);
+}
+
 

@@ -58,6 +58,10 @@ std::vector<uint8_t> gzip(std::span<const uint8_t> in);
 std::vector<uint8_t> bzip2(std::span<const uint8_t> in);
 std::vector<uint8_t> xzip(std::span<const uint8_t> in);
 
+std::vector<uint8_t> gunzip(std::span<const uint8_t> in);
+std::vector<uint8_t> bunzip2(std::span<const uint8_t> in);
+std::vector<uint8_t> xunzip(std::span<const uint8_t> in);
+
 }
 
 
