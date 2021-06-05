@@ -57,7 +57,7 @@ struct ZlibDecompressorS : Decompressor {
     assert(ret == Zlib::Z_OK);
   }
   size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
-    if (strm.avail_in == 0) {
+    if (strm.avail_in == 0 && not in.empty()) {
       strm.next_in = const_cast<uint8_t*>(in.data());
       strm.avail_in = in.size();
     } else if (not in.empty()) {
@@ -67,7 +67,7 @@ struct ZlibDecompressorS : Decompressor {
 
     strm.avail_out = out.size();
     strm.next_out = out.data();
-    int ret = inflate(&strm, Zlib::Z_NO_FLUSH);
+    int ret = inflate(&strm, Zlib::Z_SYNC_FLUSH);
     assert(ret == Zlib::Z_OK || ret == Zlib::Z_STREAM_END);
     return out.size() - strm.avail_out;
   }

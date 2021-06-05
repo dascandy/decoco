@@ -54,12 +54,12 @@ struct internal_state;
 
 struct z_stream {
     const uint8_t *next_in;     /* next input byte */
-    uint16_t     avail_in;  /* number of bytes available at next_in */
-    uint32_t    total_in;  /* total number of input bytes read so far */
+    uint64_t     avail_in;  /* number of bytes available at next_in */
+    uint64_t    total_in;  /* total number of input bytes read so far */
 
     uint8_t    *next_out; /* next output byte will go here */
-    uint16_t     avail_out; /* remaining free space at next_out */
-    uint32_t    total_out; /* total number of bytes output so far */
+    uint64_t     avail_out; /* remaining free space at next_out */
+    uint64_t    total_out; /* total number of bytes output so far */
 
     const char *msg;  /* last error message, NULL if no error */
     struct internal_state  *state; /* not visible by applications */
