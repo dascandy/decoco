@@ -22,23 +22,23 @@ struct Bzip2CompressorS : Compressor {
   }
   size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (!in.empty()) {
-      strm.avail_in = in.size();
+      strm.avail_in = (uint32_t)in.size();
       strm.next_in = const_cast<char*>(reinterpret_cast<const char*>(in.data()));
     }
-    strm.avail_out = out.size();
+    strm.avail_out = (uint32_t)out.size();
     strm.next_out = reinterpret_cast<char*>(out.data());
     int ret = BZ2_bzCompress(&strm, BZ_RUN);
     assert(ret == BZ_RUN_OK);
-    return out.size() - strm.avail_out;
+    return (uint32_t)out.size() - strm.avail_out;
   }
   size_t flush(std::span<uint8_t> out) override {
     strm.avail_in = 0;
     strm.next_in = nullptr;
-    strm.avail_out = out.size();
+    strm.avail_out = (uint32_t)out.size();
     strm.next_out = const_cast<char*>(reinterpret_cast<const char*>(out.data()));
     int ret = BZ2_bzCompress(&strm, BZ_FINISH);
     assert(ret >= 0);
-    return out.size() - strm.avail_out;
+    return (uint32_t)out.size() - strm.avail_out;
   }
   ~Bzip2CompressorS() {
     BZ2_bzCompressEnd(&strm);
@@ -59,13 +59,13 @@ struct Bzip2DecompressorS : Decompressor {
   size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (strm.avail_in == 0) {
       strm.next_in = reinterpret_cast<char*>(const_cast<uint8_t*>(in.data()));
-      strm.avail_in = in.size();
+      strm.avail_in = (uint32_t)in.size();
     } else if (not in.empty()) {
       // you can't put more data in before the rest is taken out
       std::terminate();
     }
 
-    strm.avail_out = out.size();
+    strm.avail_out = (uint32_t)out.size();
     strm.next_out = reinterpret_cast<char*>(out.data());
     int ret = BZ2_bzDecompress(&strm);
     assert(ret == BZ_OK || ret == BZ_STREAM_END);

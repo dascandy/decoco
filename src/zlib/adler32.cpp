@@ -23,7 +23,7 @@ uint32_t adler32(uint32_t adler, const uint8_t* buf, size_t len)
     while (len > 0) {
         uint16_t n;
         if (len < NMAX)
-          n = len;
+          n = (uint16_t)len;
         else 
           n = NMAX;
         len -= n;

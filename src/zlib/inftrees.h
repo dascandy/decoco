@@ -59,8 +59,8 @@ typedef enum {
 } codetype;
 
 int inflate_table (codetype type, unsigned short  *lens,
-                             unsigned codes, code  *  *table,
-                             unsigned  *bits, unsigned short  *work);
+                             uint64_t codes, code  *  *table,
+                             uint64_t *bits, unsigned short  *work);
 
 }
 

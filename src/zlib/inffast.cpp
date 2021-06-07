@@ -44,7 +44,7 @@ namespace Zlib {
       requires strm->avail_out >= 258 for each loop to avoid checking for
       output space.
  */
-void inflate_fast(z_stream* strm, unsigned int start)
+void inflate_fast(z_stream* strm, uint64_t start)
 {
     struct inflate_state  *state;
     const unsigned char  *in;      /* static strm->next_in */
@@ -52,20 +52,20 @@ void inflate_fast(z_stream* strm, unsigned int start)
     unsigned char  *out;     /* static strm->next_out */
     unsigned char  *beg;     /* inflate()'s initial strm->next_out */
     unsigned char  *end;     /* while out < end, enough space available */
-    unsigned wsize;             /* window size or zero if not using window */
-    unsigned whave;             /* valid bytes in the window */
-    unsigned wnext;             /* window write index */
+    uint64_t wsize;             /* window size or zero if not using window */
+    uint64_t whave;             /* valid bytes in the window */
+    uint64_t wnext;             /* window write index */
     unsigned char  *window;  /* allocated sliding window, if wsize != 0 */
     unsigned long hold;         /* static strm->hold */
-    unsigned bits;              /* static strm->bits */
+    uint64_t bits;              /* static strm->bits */
     code const  *lcode;      /* static strm->lencode */
     code const  *dcode;      /* static strm->distcode */
     unsigned lmask;             /* mask for first level of length codes */
     unsigned dmask;             /* mask for first level of distance codes */
     code here;                  /* retrieved table entry */
-    unsigned op;                /* code bits, operation, extra bits, or */
+    uint64_t op;                /* code bits, operation, extra bits, or */
                                 /*  window position, window bytes to copy */
-    unsigned len;               /* match length, unused bytes */
+    uint64_t len;               /* match length, unused bytes */
     unsigned dist;              /* match distance */
     unsigned char  *from;    /* where to copy match from */
 

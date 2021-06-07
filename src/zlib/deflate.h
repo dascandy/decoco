@@ -62,12 +62,12 @@ typedef struct internal_state {
     z_stream* strm;      /* pointer back to this zlib stream */
     int   status;        /* as the name implies */
     uint8_t *pending_buf;  /* output still pending */
-    uint32_t   pending_buf_size; /* size of pending_buf */
+    uint64_t   pending_buf_size; /* size of pending_buf */
     uint8_t *pending_out;  /* next pending byte to output to the stream */
-    uint32_t   pending;       /* nb of bytes in the pending buffer */
+    uint64_t   pending;       /* nb of bytes in the pending buffer */
     int   wrap;          /* bit 0 true for zlib, bit 1 true for gzip */
     gz_header*  gzhead;  /* gzip header information to write */
-    uint32_t   gzindex;       /* where in extra, name, or comment */
+    uint64_t   gzindex;       /* where in extra, name, or comment */
     uint8_t  method;        /* can only be DEFLATED */
     int   last_flush;    /* value of flush param for previous deflate call */
 
@@ -88,16 +88,16 @@ typedef struct internal_state {
 
     uint32_t  hash_shift;
     long block_start;
-    uint32_t match_length;           /* length of best match */
+    uint64_t match_length;           /* length of best match */
     IPos prev_match;             /* previous match */
     int match_available;         /* set if previous match exists */
     uint32_t strstart;               /* start of string to insert */
     uint32_t match_start;            /* start of matching string */
     uint32_t lookahead;              /* number of valid bytes ahead in window */
 
-    uint32_t prev_length;
-    uint32_t max_chain_length;
-    uint32_t max_lazy_match;
+    uint64_t prev_length;
+    uint64_t max_chain_length;
+    uint64_t max_lazy_match;
 #   define max_insert_length  max_lazy_match
     int level;    /* compression level (1..9) */
     int strategy; /* favor or force Huffman coding*/
@@ -131,13 +131,13 @@ typedef struct internal_state {
 
     uint32_t opt_len;        /* bit length of current block with optimal trees */
     uint32_t static_len;     /* bit length of current block with static trees */
-    uint32_t matches;       /* number of string matches in current block */
-    uint32_t insert;        /* bytes at end of window left to insert */
+    uint64_t matches;       /* number of string matches in current block */
+    uint64_t insert;        /* bytes at end of window left to insert */
 
     uint16_t bi_buf;
     int bi_valid;
 
-    uint32_t high_water;
+    uint64_t high_water;
 }  deflate_state;
 
 /* Output a byte on the stream.

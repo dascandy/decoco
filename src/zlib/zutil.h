@@ -41,7 +41,7 @@ static constexpr const uint16_t MAX_MATCH = 258;
 #define PRESET_DICT 0x20 /* preset dictionary flag in zlib header */
 
 /* Reverse the bytes in a 32-bit value */
-#define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
+#define ZSWAP32(q) (uint32_t)((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
                     (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
 
 }

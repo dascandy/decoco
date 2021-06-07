@@ -27,14 +27,14 @@ namespace Zlib {
    table index bits.  It will differ if the request is greater than the
    longest code or if it is less than the shortest code.
  */
-int inflate_table(codetype type, uint16_t* lens, unsigned int codes, code** table, unsigned int* bits, unsigned short* work)
+int inflate_table(codetype type, uint16_t* lens, uint64_t codes, code** table, uint64_t* bits, unsigned short* work)
 {
     unsigned len;               /* a code's length in bits */
     unsigned sym;               /* index of code symbols */
     unsigned min, max;          /* minimum and maximum code lengths */
-    unsigned root;              /* number of index bits for root table */
-    unsigned curr;              /* number of index bits for current table */
-    unsigned drop;              /* code bits to drop for sub-table */
+    uint64_t root;              /* number of index bits for root table */
+    uint64_t curr;              /* number of index bits for current table */
+    uint64_t drop;              /* code bits to drop for sub-table */
     int left;                   /* number of prefix codes available */
     unsigned used;              /* code entries in table used */
     unsigned huff;              /* Huffman code */

@@ -72,16 +72,16 @@ struct z_stream {
 
 struct gz_header {
     int     text;       /* true if compressed data believed to be text */
-    uint32_t   time;       /* modification time */
+    uint64_t   time;       /* modification time */
     int     xflags;     /* extra flags (not used when writing a gzip file) */
     int     os;         /* operating system */
     uint8_t   *extra;     /* pointer to extra field or nullptr if none */
-    uint16_t    extra_len;  /* extra field length (valid if extra != nullptr) */
-    uint16_t    extra_max;  /* space at extra (only when reading header) */
+    uint64_t    extra_len;  /* extra field length (valid if extra != nullptr) */
+    uint64_t    extra_max;  /* space at extra (only when reading header) */
     uint8_t   *name;      /* pointer to zero-terminated file name or nullptr */
-    uint16_t    name_max;   /* space at name (only when reading header) */
+    uint64_t    name_max;   /* space at name (only when reading header) */
     uint8_t   *comment;   /* pointer to zero-terminated comment or nullptr */
-    uint16_t    comm_max;   /* space at comment (only when reading header) */
+    uint64_t    comm_max;   /* space at comment (only when reading header) */
     int     hcrc;       /* true if there was or will be a header crc */
     int     done;       /* true when done reading gzip header (not used
                            when writing a gzip file) */

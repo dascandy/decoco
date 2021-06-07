@@ -10,6 +10,6 @@
 
 namespace Zlib {
 
-void inflate_fast (z_stream* strm, unsigned start);
+void inflate_fast (z_stream* strm, uint64_t start);
 
 }

@@ -84,7 +84,7 @@ static void lm_init        (deflate_state *s);
 static void putShortMSB    (deflate_state *s, uint16_t b);
 static void flush_pending  (z_stream* strm);
 static size_t read_buf(z_stream* strm, uint8_t* buf, size_t size);
-static uint16_t longest_match  (deflate_state *s, IPos cur_match);
+static uint64_t longest_match  (deflate_state *s, IPos cur_match);
 static int deflateReset (z_stream* strm);
 
 static int            deflateResetKeep (z_stream*);
@@ -96,10 +96,10 @@ static int            deflateResetKeep (z_stream*);
  * found for specific files.
  */
 typedef struct config_s {
-   uint16_t good_length; /* reduce lazy search above this match length */
-   uint16_t max_lazy;    /* do not perform lazy search above this match length */
-   uint16_t nice_length; /* quit search above this match length */
-   uint16_t max_chain;
+   uint32_t good_length; /* reduce lazy search above this match length */
+   uint64_t max_lazy;    /* do not perform lazy search above this match length */
+   uint32_t nice_length; /* quit search above this match length */
+   uint64_t max_chain;
    compress_func func;
 } config;
 
@@ -164,9 +164,9 @@ static const config configuration_table[10] = {
  */
 static void slide_hash(deflate_state* s)
 {
-    unsigned n, m;
+    uint64_t n, m;
     Pos *p;
-    uint16_t wsize = s->w_size;
+    uint64_t wsize = s->w_size;
 
     n = s->hash_size;
     p = &s->head[n];
@@ -357,7 +357,7 @@ static void putShortMSB (deflate_state* s, uint16_t b)
  */
 static void flush_pending(z_stream* strm)
 {
-    unsigned len;
+    size_t len;
     deflate_state *s = strm->state;
 
     _tr_flush_bits(s);
@@ -438,7 +438,7 @@ int deflate(z_stream* strm, int flush)
     /* Write the header */
     if (s->status == INIT_STATE) {
         /* zlib header */
-        uint16_t header = (Z_DEFLATED + ((s->w_bits-8)<<4)) << 8;
+        uint16_t header = (uint16_t)((Z_DEFLATED + ((s->w_bits-8)<<4)) << 8);
         uint16_t level_flags;
 
         if (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2)
@@ -523,10 +523,10 @@ int deflate(z_stream* strm, int flush)
     }
     if (s->status == EXTRA_STATE) {
         if (s->gzhead->extra != nullptr) {
-            uint32_t beg = s->pending;   /* start of bytes to update crc */
-            uint16_t left = (s->gzhead->extra_len & 0xffff) - s->gzindex;
+            uint64_t beg = s->pending;   /* start of bytes to update crc */
+            uint64_t left = (s->gzhead->extra_len & 0xffff) - s->gzindex;
             while (s->pending + left > s->pending_buf_size) {
-                uint16_t copy = s->pending_buf_size - s->pending;
+                uint64_t copy = s->pending_buf_size - s->pending;
                 memcpy(s->pending_buf + s->pending,
                         s->gzhead->extra + s->gzindex, copy);
                 s->pending = s->pending_buf_size;
@@ -550,7 +550,7 @@ int deflate(z_stream* strm, int flush)
     }
     if (s->status == NAME_STATE) {
         if (s->gzhead->name != nullptr) {
-            uint32_t beg = s->pending;   /* start of bytes to update crc */
+            uint64_t beg = s->pending;   /* start of bytes to update crc */
             int val;
             do {
                 if (s->pending == s->pending_buf_size) {
@@ -572,7 +572,7 @@ int deflate(z_stream* strm, int flush)
     }
     if (s->status == COMMENT_STATE) {
         if (s->gzhead->comment != nullptr) {
-            uint32_t beg = s->pending;   /* start of bytes to update crc */
+            uint64_t beg = s->pending;   /* start of bytes to update crc */
             int val;
             do {
                 if (s->pending == s->pending_buf_size) {
@@ -721,7 +721,7 @@ int deflateEnd (z_stream* strm)
  */
 static size_t read_buf(z_stream* strm, uint8_t* buf, size_t size)
 {
-    unsigned len = strm->avail_in;
+    uint64_t len = strm->avail_in;
 
     if (len > size) len = size;
     if (len == 0) return 0;
@@ -746,7 +746,7 @@ static size_t read_buf(z_stream* strm, uint8_t* buf, size_t size)
  */
 static void lm_init (deflate_state* s)
 {
-    s->window_size = (uint32_t)2L*s->w_size;
+    s->window_size = (uint64_t)2L*s->w_size;
 
     CLEAR_HASH(s);
 
@@ -775,21 +775,21 @@ static void lm_init (deflate_state* s)
  *   string (strstart) and its distance is <= MAX_DIST, and prev_length >= 1
  * OUT assertion: the match length is not greater than s->lookahead.
  */
-static uint16_t longest_match(deflate_state* s, IPos cur_match)
+static uint64_t longest_match(deflate_state* s, IPos cur_match)
 {
-    unsigned chain_length = s->max_chain_length;/* max hash chain length */
+    uint64_t chain_length = s->max_chain_length;/* max hash chain length */
     uint8_t *scan = s->window + s->strstart; /* current string */
     uint8_t *match;                      /* matched string */
-    int len;                           /* length of current match */
-    int best_len = (int)s->prev_length;         /* best match length so far */
-    int nice_match = s->nice_match;             /* stop if match long enough */
+    uint64_t len;                           /* length of current match */
+    uint64_t best_len = s->prev_length;         /* best match length so far */
+    uint64_t nice_match = s->nice_match;             /* stop if match long enough */
     IPos limit = s->strstart > (IPos)MAX_DIST(s) ?
         s->strstart - (IPos)MAX_DIST(s) : 0;
     /* Stop when cur_match becomes <= limit. To simplify the code,
      * we prevent matches with the string of window index 0.
      */
     Pos *prev = s->prev;
-    uint16_t wmask = s->w_mask;
+    uint32_t wmask = s->w_mask;
 
     uint8_t *strend = s->window + s->strstart + MAX_MATCH;
     uint8_t scan_end1  = scan[best_len-1];
@@ -851,7 +851,7 @@ static uint16_t longest_match(deflate_state* s, IPos cur_match)
     } while ((cur_match = prev[cur_match & wmask]) > limit
              && --chain_length != 0);
 
-    if ((uint16_t)best_len <= s->lookahead) return (uint16_t)best_len;
+    if (best_len <= s->lookahead) return best_len;
     return s->lookahead;
 }
 
@@ -867,25 +867,12 @@ static uint16_t longest_match(deflate_state* s, IPos cur_match)
  */
 static void fill_window(deflate_state* s)
 {
-    unsigned n;
+    size_t n;
     unsigned more;    /* Amount of free space at the end of the window. */
-    uint16_t wsize = s->w_size;
+    uint64_t wsize = s->w_size;
 
     do {
-        more = (unsigned)(s->window_size -(uint32_t)s->lookahead -(uint32_t)s->strstart);
-
-        /* Deal with !@#$% 64K limit: */
-        if (sizeof(int) <= 2) {
-            if (more == 0 && s->strstart == 0 && s->lookahead == 0) {
-                more = wsize;
-
-            } else if (more == (unsigned)(-1)) {
-                /* Very unlikely, but possible on 16 bit machine if
-                 * strstart == 0 && lookahead == 1 (input done a byte at time)
-                 */
-                more--;
-            }
-        }
+        more = (unsigned)(s->window_size - s->lookahead - s->strstart);
 
         /* If the window is almost full and there is insufficient lookahead,
          * move the upper half to the lower one to make room in the upper half.
@@ -917,7 +904,7 @@ static void fill_window(deflate_state* s)
 
         /* Initialize the hash value now that we have some input: */
         if (s->lookahead + s->insert >= MIN_MATCH) {
-            uint16_t str = s->strstart - s->insert;
+            uint64_t str = s->strstart - s->insert;
             s->ins_h = s->window[str];
             UPDATE_HASH(s, s->ins_h, s->window[str + 1]);
             while (s->insert) {
@@ -944,8 +931,8 @@ static void fill_window(deflate_state* s)
      * routines allow scanning to strstart + MAX_MATCH, ignoring lookahead.
      */
     if (s->high_water < s->window_size) {
-        uint32_t curr = s->strstart + (uint32_t)(s->lookahead);
-        uint32_t init;
+        uint64_t curr = s->strstart + s->lookahead;
+        uint64_t init;
 
         if (s->high_water < curr) {
             /* Previous high water mark below current data -- zero WIN_INIT
@@ -954,18 +941,18 @@ static void fill_window(deflate_state* s)
             init = s->window_size - curr;
             if (init > WIN_INIT)
                 init = WIN_INIT;
-            memset(s->window + curr, 0, (unsigned)init);
+            memset(s->window + curr, 0, init);
             s->high_water = curr + init;
         }
-        else if (s->high_water < (uint32_t)curr + WIN_INIT) {
+        else if (s->high_water < curr + WIN_INIT) {
             /* High water mark at or above current data, but below current data
              * plus WIN_INIT -- zero out to current data plus WIN_INIT, or up
              * to end of window, whichever is less.
              */
-            init = (uint32_t)curr + WIN_INIT - s->high_water;
+            init = curr + WIN_INIT - s->high_water;
             if (init > s->window_size - s->high_water)
                 init = s->window_size - s->high_water;
-            memset(s->window + s->high_water, 0, (unsigned)init);
+            memset(s->window + s->high_water, 0, init);
             s->high_water += init;
         }
     }
@@ -1059,7 +1046,7 @@ static block_state deflate_slow(deflate_state* s, int flush)
          * match is not better, output the previous match:
          */
         if (s->prev_length >= MIN_MATCH && s->match_length <= s->prev_length) {
-            uint16_t max_insert = s->strstart + s->lookahead - MIN_MATCH;
+            uint64_t max_insert = s->strstart + s->lookahead - MIN_MATCH;
             /* Do not insert strings in hash table beyond this. */
 
             _tr_tally_dist(s, s->strstart -1 - s->prev_match,

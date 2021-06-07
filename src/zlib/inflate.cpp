@@ -91,7 +91,7 @@ namespace Zlib {
 static int inflateStateCheck (z_stream* strm);
 static void fixedtables (struct inflate_state  *state);
 static int updatewindow (z_stream* strm, const unsigned char  *end,
-                           unsigned copy);
+                           uint64_t copy);
 
 static int inflateReset (z_stream* strm);
 
@@ -178,7 +178,7 @@ static int inflateReset2(z_stream* strm, int windowBits)
 
     /* update state and reset the rest of it */
     state->wrap = wrap;
-    state->wbits = (unsigned)windowBits;
+    state->wbits = (uint16_t)windowBits;
     return inflateReset(strm);
 }
 
@@ -221,10 +221,10 @@ static void fixedtables(inflate_state* state)
     state->distbits = 5;
 }
 
-static int updatewindow(z_stream* strm, const uint8_t* end, unsigned int copy)
+static int updatewindow(z_stream* strm, const uint8_t* end, uint64_t copy)
 {
     struct inflate_state  *state;
-    unsigned dist;
+    uint64_t dist;
 
     state = (struct inflate_state  *)strm->state;
 
@@ -443,15 +443,15 @@ int inflate(z_stream* strm, int flush)
     struct inflate_state  *state;
     const unsigned char  *next;    /* next input */
     unsigned char  *put;     /* next output */
-    unsigned have, left;        /* available input and output */
-    unsigned long hold;         /* bit buffer */
-    unsigned bits;              /* bits in bit buffer */
-    unsigned in, out;           /* save starting available input and output */
-    unsigned copy;              /* number of stored or match bytes to copy */
+    uint64_t have, left;        /* available input and output */
+    uint64_t hold;         /* bit buffer */
+    uint64_t bits;              /* bits in bit buffer */
+    uint64_t in, out;           /* save starting available input and output */
+    uint64_t copy;              /* number of stored or match bytes to copy */
     unsigned char  *from;    /* where to copy match bytes from */
     code here;                  /* current decoding table entry */
     code last;                  /* parent table entry */
-    unsigned len;               /* length to copy for repeats, bits to drop */
+    uint64_t len;               /* length to copy for repeats, bits to drop */
     int ret;                    /* return code */
     unsigned char hbuf[4];      /* buffer for gzip header crc calculation */
     static const unsigned short order[19] = /* permutation of code lengths */
@@ -501,7 +501,7 @@ int inflate(z_stream* strm, int flush)
             DROPBITS(4);
             len = BITS(4) + 8;
             if (state->wbits == 0)
-                state->wbits = len;
+                state->wbits = (uint16_t)len;
             if (len > 15 || len > state->wbits) {
                 strm->msg = "invalid window size";
                 state->mode = BAD;
@@ -552,9 +552,9 @@ int inflate(z_stream* strm, int flush)
         case EXLEN:
             if (state->flags & 0x0400) {
                 NEEDBITS(16);
-                state->length = (unsigned)(hold);
+                state->length = hold;
                 if (state->head != nullptr)
-                    state->head->extra_len = (unsigned)hold;
+                    state->head->extra_len = hold;
                 if ((state->flags & 0x0200) && (state->wrap & 4))
                     CRC2(state->check, hold);
                 INITBITS();
