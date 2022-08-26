@@ -16,9 +16,9 @@ public:
     Small,
   };
   std::vector<uint8_t> compress(std::span<const uint8_t> in);
-  virtual size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) = 0;
+  virtual std::span<uint8_t> compress(std::span<const uint8_t> in, std::span<uint8_t> out) = 0;
   std::vector<uint8_t> flush();
-  virtual size_t flush(std::span<uint8_t> out) = 0;
+  virtual std::span<uint8_t> flush(std::span<uint8_t> out) = 0;
   virtual ~Compressor() = default;
 protected:
   Compressor(size_t chunkSize) : chunkSize(chunkSize) {}
@@ -29,7 +29,7 @@ private:
 class Decompressor {
 public:
   std::vector<uint8_t> decompress(std::span<const uint8_t> in);
-  virtual size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) = 0;
+  virtual std::span<uint8_t> decompress(std::span<const uint8_t> in, std::span<uint8_t> out) = 0;
   virtual ~Decompressor() = default;
 protected:
   Decompressor(size_t outputChunkSize) 

@@ -20,7 +20,7 @@ struct ZlibCompressorS : Compressor {
     int ret = deflateInit(&strm, compressorLevelToZlib(level));
     assert(ret == Zlib::Z_OK);
   }
-  size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+  std::span<uint8_t> compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (!in.empty()) {
       strm.avail_in = in.size();
       strm.next_in = const_cast<uint8_t*>(in.data());
@@ -29,16 +29,16 @@ struct ZlibCompressorS : Compressor {
     strm.next_out = out.data();
     int ret = deflate(&strm, Zlib::Z_NO_FLUSH);
     assert(ret != Zlib::Z_STREAM_ERROR);
-    return out.size() - strm.avail_out;
+    return out.subspan(0, out.size() - strm.avail_out);
   }
-  size_t flush(std::span<uint8_t> out) override {
+  std::span<uint8_t> flush(std::span<uint8_t> out) override {
     strm.avail_in = 0;
     strm.next_in = nullptr;
     strm.avail_out = out.size();
     strm.next_out = out.data();
     int ret = deflate(&strm, Zlib::Z_FINISH);
     assert(ret != Zlib::Z_STREAM_ERROR);
-    return out.size() - strm.avail_out;
+    return out.subspan(0, out.size() - strm.avail_out);
   }
   ~ZlibCompressorS() {
     deflateEnd(&strm);
@@ -56,7 +56,7 @@ struct ZlibDecompressorS : Decompressor {
     int ret = inflateInit(&strm);
     assert(ret == Zlib::Z_OK);
   }
-  size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+  std::span<uint8_t> decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (strm.avail_in == 0 && not in.empty()) {
       strm.next_in = const_cast<uint8_t*>(in.data());
       strm.avail_in = in.size();
@@ -69,7 +69,7 @@ struct ZlibDecompressorS : Decompressor {
     strm.next_out = out.data();
     int ret = inflate(&strm, Zlib::Z_SYNC_FLUSH);
     assert(ret == Zlib::Z_OK || ret == Zlib::Z_STREAM_END);
-    return out.size() - strm.avail_out;
+    return out.subspan(0, out.size() - strm.avail_out);
   }
   ~ZlibDecompressorS() {
     inflateEnd(&strm);

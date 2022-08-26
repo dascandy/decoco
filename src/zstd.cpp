@@ -21,7 +21,7 @@ struct ZstdCompressorS : Compressor {
     size_t const initResult = ZSTD_initCStream(cstream, compressorLevelToZSTD(level));
     if (ZSTD_isError(initResult)) { throw std::runtime_error("Could not initialize ZSTD library"); }
   }
-  size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+  std::span<uint8_t> compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (!in.empty()) {
       input = { in.data(), in.size(), 0 };
     }
@@ -29,13 +29,13 @@ struct ZstdCompressorS : Compressor {
     ZSTD_outBuffer output = { out.data(), out.size(), 0 };
     auto rv = ZSTD_compressStream(cstream, &output, &input);
     if (ZSTD_isError(rv)) { throw std::runtime_error("internal error in zstd"); }
-    return output.pos;
+    return out.subspan(0, output.pos);
   }
-  size_t flush(std::span<uint8_t> out) override {
+  std::span<uint8_t> flush(std::span<uint8_t> out) override {
     ZSTD_outBuffer output = { out.data(), out.size(), 0 };
     size_t const remainingToFlush = ZSTD_endStream(cstream, &output);
     if (remainingToFlush) { throw std::runtime_error("Flush incomplete"); }
-    return output.pos;
+    return out.subspan(0, output.pos);
   }
   ~ZstdCompressorS() {
     ZSTD_freeCStream(cstream);
@@ -55,7 +55,7 @@ struct ZstdDecompressorS : Decompressor {
     size_t const initResult = ZSTD_initDStream(dstream);
     if (ZSTD_isError(initResult)) { throw std::runtime_error("Could not initialize ZSTD library"); }
   }
-  size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+  std::span<uint8_t> decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (input.pos == input.size) {
       input = { in.data(), in.size(), 0 };
     } else if (not in.empty()) {
@@ -65,7 +65,7 @@ struct ZstdDecompressorS : Decompressor {
     ZSTD_outBuffer output = { out.data(), out.size(), 0 };
     auto rv = ZSTD_decompressStream(dstream, &output, &input);
     if (ZSTD_isError(rv)) { throw std::runtime_error("ZSTD invalid data in stream"); }
-    return output.pos;
+    return out.subspan(0, output.pos);
   }
   ~ZstdDecompressorS() {
     ZSTD_freeDStream(dstream);

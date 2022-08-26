@@ -25,14 +25,15 @@ Which of these works best for you depends on your use circumstances; the first i
 
 Call the decompress function on it with a block of data, and subsequently keep calling it until a zero-sized output vector is returned.
 
-    std::vector<uint8_t> output = decomp.decompress(data);
-    while (true) {
-      auto additional = decomp.decompress({});
-      if (additional.empty()) break;
-      output.insert(output.end, additional.begin(), additional.end());
+    std::array<uint8_t, 16384> input_buffer, output_buffer;
+    while (not file.eof()) {
+      co_await socket.write(decomp->decompress(co_await file.read(input_buffer), output_buffer));
+      while (true) {
+        auto bytesToWrite = decomp->decompress(output_buffer);
+        if (bytesToWrite.empty()) break;
+        co_await socket.write(bytesToWrite);
+      }
     }
-
-Note that some small compressed files can expand to huge outputs; while the code above works for illustrative purposes it's susceptible to crashing on untrusted inputs. It's best to either limit the size it can go to, or to immediately process intermediate outputs.
 
 When there is no more input to be processed, destruct the Decompressor object at the target of the unique\_ptr to free any associated resources.
 
@@ -49,13 +50,11 @@ Again, the first will guaranteed work if it compiles, while the second will allo
 
 To compress data, feed it in the compress call and store the resulting vector of bytes into the compressed output. You can perform multiple calls in sequence to repeatedly add more data to the same stream. When all data has been retrieved, call the flush() function once to retrieve the final section of compressed data. This also closes the compressor for further data.
 
-    std::vector<uint8_t> compressedData;
-    while (data still incoming) {
-      auto newOutput = comp.compress(newInput);
-      compressedData.insert(compressedData.end(), newOutput.begin(), newOutput.end());
+    std::array<uint8_t, 16384> input_buffer, output_buffer;
+    while (not file.eof()) {
+      co_await socket.write(comp->compress(co_await file.read(input_buffer), output_buffer));
     }
-    auto finalOutput = comp.flush();
-    compressedData.insert(compressedData.end(), finalOutput.begin(), finalOutput.end());
+    co_await socket.write(comp->flush(output_buffer));
 
 The compressed output can be slightly larger than the input; some data is relatively incompressible. It should on typical data be much smaller.
 

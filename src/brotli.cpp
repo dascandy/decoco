@@ -25,7 +25,7 @@ struct BrotliCompressorS : Compressor {
             nullptr);
     BrotliEncoderSetParameter(state, BROTLI_PARAM_QUALITY, compressorLevelToBrotli(level));
   }
-  size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+  std::span<uint8_t> compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (not in.empty()) {
       insize = in.size();
       indata = in.data();
@@ -35,15 +35,15 @@ struct BrotliCompressorS : Compressor {
     size_t totalout = 0;
     bool ok = BrotliEncoderCompressStream(state, BROTLI_OPERATION_PROCESS, &insize, &indata, &outsize, &outdata, &totalout);
     assert(ok);
-    return totalout;
+    return out.subspan(0, totalout);
   }
-  size_t flush(std::span<uint8_t> out) override {
+  std::span<uint8_t> flush(std::span<uint8_t> out) override {
     size_t outsize = out.size();
     uint8_t* outdata = out.data();
     size_t totalout = 0;
     bool ok = BrotliEncoderCompressStream(state, BROTLI_OPERATION_PROCESS, &insize, &indata, &outsize, &outdata, &totalout);
     assert(ok);
-    return totalout;
+    return out.subspan(0, totalout);
   }
   ~BrotliCompressorS() {
     BrotliEncoderDestroyInstance(state);
@@ -66,7 +66,7 @@ struct BrotliDecompressorS : Decompressor {
             +[](void*, void* ptr) { return free(ptr); },
             nullptr);
   }
-  size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+  std::span<uint8_t> decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (not in.empty()) {
       if (insize == 0) {
         insize = in.size();
@@ -84,7 +84,7 @@ struct BrotliDecompressorS : Decompressor {
     if (res == BROTLI_DECODER_RESULT_ERROR) {
       throw std::runtime_error("Decoding failed");
     }
-    return totalout;
+    return out.subspan(0, totalout);
   }
   ~BrotliDecompressorS() {
     BrotliDecoderDestroyInstance(state);

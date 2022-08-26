@@ -25,9 +25,9 @@ std::vector<uint8_t> decompress(std::unique_ptr<Decoco::Decompressor> c, std::sp
   while (true) {
     std::vector<uint8_t> nextbit;
     nextbit.resize(32768);
-    nextbit.resize(c->decompress({}, nextbit));
-    if (nextbit.empty()) return data;
-    data.insert(data.end(), nextbit.begin(), nextbit.end());
+    auto output = c->decompress({}, nextbit);
+    if (output.empty()) return data;
+    data.insert(data.end(), output.begin(), output.end());
   }
 }
 

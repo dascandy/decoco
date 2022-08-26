@@ -20,7 +20,7 @@ struct LzmaCompressorS : Compressor {
     int ret = lzma_easy_encoder(&strm, compressorLevelToLzmalib(level), LZMA_CHECK_CRC64);
     assert(ret == LZMA_OK);
   }
-  size_t compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+  std::span<uint8_t> compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (!in.empty()) {
       strm.avail_in = in.size();
       strm.next_in = in.data();
@@ -29,16 +29,16 @@ struct LzmaCompressorS : Compressor {
     strm.next_out = out.data();
     int ret = lzma_code(&strm, LZMA_RUN);
     assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
-    return out.size() - strm.avail_out;
+    return out.subspan(0, out.size() - strm.avail_out);
   }
-  size_t flush(std::span<uint8_t> out) override {
+  std::span<uint8_t> flush(std::span<uint8_t> out) override {
     strm.avail_in = 0;
     strm.next_in = nullptr;
     strm.avail_out = out.size();
     strm.next_out = out.data();
     int ret = lzma_code(&strm, LZMA_FINISH);
     assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
-    return out.size() - strm.avail_out;
+    return out.subspan(0, out.size() - strm.avail_out);
   }
   ~LzmaCompressorS() {
     lzma_end(&strm);
@@ -56,7 +56,7 @@ struct LzmaDecompressorS : Decompressor {
     int ret = lzma_stream_decoder(&strm, UINT64_MAX, 0);
     assert(ret == LZMA_OK);
   }
-  size_t decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
+  std::span<uint8_t> decompress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (strm.avail_in == 0) {
       strm.next_in = in.data();
       strm.avail_in = in.size();
@@ -69,7 +69,7 @@ struct LzmaDecompressorS : Decompressor {
     strm.next_out = out.data();
     int ret = lzma_code(&strm, LZMA_RUN);
     assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
-    return out.size() - strm.avail_out;
+    return out.subspan(0, out.size() - strm.avail_out);
   }
   ~LzmaDecompressorS() {
     lzma_end(&strm);
