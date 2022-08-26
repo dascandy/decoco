@@ -4,12 +4,11 @@ Decoco is a small C++ library that wraps various compression libraries in a C++(
 
 License: BSD-2-Clause
 
-
 ## Installation
 
-Retrieve the repository and build it with an Evoke-compatible build tool. It uses the platform-provided compression libraries for gzip, bzip2 and lzma. To install these on a Debian-like system, run
+Retrieve the repository and build it with an Evoke-compatible build tool. It uses the platform-provided compression libraries for gzip, bzip2, lzma, zstd and brotli. To install these on a Debian-like system, run
 
-    apt install liblzma-dev zlib1g-dev libbz2-dev
+    apt install liblzma-dev zlib1g-dev libbz2-dev libbrotli-dev libzstd-dev
 
 ## Usage
 
@@ -59,6 +58,18 @@ To compress data, feed it in the compress call and store the resulting vector of
     compressedData.insert(compressedData.end(), finalOutput.begin(), finalOutput.end());
 
 The compressed output can be slightly larger than the input; some data is relatively incompressible. It should on typical data be much smaller.
+
+### Compact compression and decompression
+
+For allowing software to easily decompress and compress known-small-enough files in memory, there is a separate set of functions that do this in a user-friendly but less efficient function:
+
+    std::vector<uint8_t> compressed = compress(GzipCompressor(), myInput);
+    std::vector<uint8_t> data = decompress(GzipDecompressor(), compressed);
+    REQUIRE(data == myInput);
+
+This is meant mostly for code where readability takes precedence over speed or efficiency. In some cases though it allows Decoco to inform the underlying library about the expected output size or enable it to analyze the full input allowing the compressors to compress more than the generic streaming setup would allow.
+
+For three often-used compression formats there are shorthand names - `gzip`/`gunzip`, `bzip2`/`bunzip2` and `xzip`/`xunzip`. These are identical to the generic `compress` and `decompress` except they imply the compressor/decompressor in use.
 
 ### Multithreading
 
