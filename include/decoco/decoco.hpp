@@ -44,6 +44,8 @@ std::unique_ptr<Compressor> ZlibCompressor(Compressor::Level level = Compressor:
 std::unique_ptr<Compressor> DeflateCompressor(Compressor::Level level = Compressor::Level::Balanced, size_t chunkSize = 16384);
 std::unique_ptr<Compressor> LzmaCompressor(Compressor::Level level = Compressor::Level::Balanced, size_t chunkSize = 16384);
 std::unique_ptr<Compressor> Bzip2Compressor(Compressor::Level level = Compressor::Level::Balanced, size_t chunkSize = 16384);
+std::unique_ptr<Compressor> BrotliCompressor(Compressor::Level level = Compressor::Level::Balanced, size_t chunkSize = 16384);
+std::unique_ptr<Compressor> ZstdCompressor(Compressor::Level level = Compressor::Level::Balanced, size_t chunkSize = 16384);
 std::unique_ptr<Compressor> FindCompressor(std::string_view name, Compressor::Level level = Compressor::Level::Balanced, size_t chunkSize = 16384);
 
 std::unique_ptr<Decompressor> GzipDecompressor(size_t outputChunkSize = 16384);
@@ -51,8 +53,13 @@ std::unique_ptr<Decompressor> ZlibDecompressor(size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> DeflateDecompressor(size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> LzmaDecompressor(size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> Bzip2Decompressor(size_t outputChunkSize = 16384);
+std::unique_ptr<Decompressor> BrotliDecompressor(size_t outputChunkSize = 16384);
+std::unique_ptr<Decompressor> ZstdDecompressor(size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> FindDecompressor(std::string_view name, size_t outputChunkSize = 16384);
 std::unique_ptr<Decompressor> SniffDecompressor(std::span<uint8_t> file, size_t outputChunkSize = 16384);
+
+// Convenience functions
+std::vector<uint8_t> compress(std::unique_ptr<Decoco::Compressor> c, std::span<const uint8_t> in);
 
 std::vector<uint8_t> gzip(std::span<const uint8_t> in);
 std::vector<uint8_t> bzip2(std::span<const uint8_t> in);
