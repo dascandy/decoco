@@ -60,6 +60,7 @@ std::unique_ptr<Decompressor> SniffDecompressor(std::span<uint8_t> file, size_t 
 
 // Convenience functions
 std::vector<uint8_t> compress(std::unique_ptr<Decoco::Compressor> c, std::span<const uint8_t> in);
+std::vector<uint8_t> decompress(std::unique_ptr<Decoco::Decompressor> c, std::span<const uint8_t> in);
 
 std::vector<uint8_t> gzip(std::span<const uint8_t> in);
 std::vector<uint8_t> bzip2(std::span<const uint8_t> in);

@@ -19,7 +19,7 @@ std::vector<uint8_t> Decoco::xzip(std::span<const uint8_t> in) {
   return compress(LzmaCompressor(), in);
 }
 
-static std::vector<uint8_t> decompress(std::unique_ptr<Decoco::Decompressor> c, std::span<const uint8_t> in) {
+std::vector<uint8_t> decompress(std::unique_ptr<Decoco::Decompressor> c, std::span<const uint8_t> in) {
   std::vector<uint8_t> data;
   c->decompress(in, data);
   while (true) {
