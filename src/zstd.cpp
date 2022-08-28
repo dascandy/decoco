@@ -1,6 +1,7 @@
 #include <decoco/decoco.hpp>
 #include <zstd.h>
 #include <assert.h>
+#include <iostream>
 
 namespace Decoco {
 
@@ -20,6 +21,9 @@ struct ZstdCompressorS : Compressor {
     if (cstream==NULL) { throw std::runtime_error("Could not initialize ZSTD library"); }
     size_t const initResult = ZSTD_initCStream(cstream, compressorLevelToZSTD(level));
     if (ZSTD_isError(initResult)) { throw std::runtime_error("Could not initialize ZSTD library"); }
+
+    size_t const checksumResult = ZSTD_CCtx_setParameter(cstream, ZSTD_c_checksumFlag, 1);
+    if (ZSTD_isError(checksumResult)) { throw std::runtime_error("Zstd refuses to checksum"); }
   }
   std::span<uint8_t> compress(std::span<const uint8_t> in, std::span<uint8_t> out) override {
     if (!in.empty()) {
@@ -50,7 +54,7 @@ struct ZstdDecompressorS : Decompressor {
   ZstdDecompressorS(size_t outputChunkSize)
   : Decompressor(outputChunkSize)
   {
-    ZSTD_DStream* const dstream = ZSTD_createDStream();
+    dstream = ZSTD_createDStream();
     if (dstream==NULL) { throw std::runtime_error("Could not initialize ZSTD library"); }
     size_t const initResult = ZSTD_initDStream(dstream);
     if (ZSTD_isError(initResult)) { throw std::runtime_error("Could not initialize ZSTD library"); }

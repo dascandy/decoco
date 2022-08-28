@@ -41,7 +41,7 @@ struct BrotliCompressorS : Compressor {
     size_t outsize = out.size();
     uint8_t* outdata = out.data();
     size_t totalout = 0;
-    bool ok = BrotliEncoderCompressStream(state, BROTLI_OPERATION_PROCESS, &insize, &indata, &outsize, &outdata, &totalout);
+    bool ok = BrotliEncoderCompressStream(state, BROTLI_OPERATION_FINISH, &insize, &indata, &outsize, &outdata, &totalout);
     assert(ok);
     return out.subspan(0, totalout);
   }
