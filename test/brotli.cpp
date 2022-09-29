@@ -1,5 +1,5 @@
 #include <decoco/decoco.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 static std::vector<uint8_t> hello = { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x0a };
 
@@ -12,9 +12,6 @@ TEST_CASE("Basic roundtrip brotli") {
   auto brotliData = compressor->compress(hello);
   auto end = compressor->flush();
   brotliData.insert(brotliData.end(), end.begin(), end.end());
-  for (auto& c : brotliData) {
-    printf("%02x ", c);
-  }
   REQUIRE(brotliData == helloBrotli);
 }
 

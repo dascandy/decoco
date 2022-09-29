@@ -1,5 +1,5 @@
 #include <decoco/decoco.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 static std::vector<uint8_t> hello = { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x0a };
 
