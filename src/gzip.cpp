@@ -69,13 +69,19 @@ struct GzipDecompressorS : Decompressor {
 
     strm.avail_out = out.size();
     strm.next_out = out.data();
+    in_used += strm.avail_in;
     int ret = inflate(&strm, Zlib::Z_NO_FLUSH);
+    in_used -= strm.avail_in;
     assert(ret == Zlib::Z_OK || ret == Zlib::Z_STREAM_END);
     return out.subspan(0, out.size() - strm.avail_out);
   }
   ~GzipDecompressorS() {
     inflateEnd(&strm);
   }
+  size_t bytesUsed() const override {
+    return in_used;
+  }
+  size_t in_used = 0;
   Zlib::z_stream strm;
 };
 

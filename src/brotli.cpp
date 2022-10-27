@@ -80,7 +80,9 @@ struct BrotliDecompressorS : Decompressor {
     size_t totalout = 0;
     size_t outsize = out.size();
     uint8_t* outdata = out.data();
+    in_used += insize;
     BrotliDecoderResult res = BrotliDecoderDecompressStream(state, &insize, &indata, &outsize, &outdata, &totalout);
+    in_used -= insize;
     if (res == BROTLI_DECODER_RESULT_ERROR) {
       throw std::runtime_error("Decoding failed");
     }
@@ -89,9 +91,13 @@ struct BrotliDecompressorS : Decompressor {
   ~BrotliDecompressorS() {
     BrotliDecoderDestroyInstance(state);
   }
+  size_t bytesUsed() const override {
+    return in_used;
+  }
   BrotliDecoderState* state;
   const uint8_t* indata;
   size_t insize;
+  size_t in_used = 0;
 };
 
 std::unique_ptr<Decompressor> BrotliDecompressor(size_t outputChunkSize) { return std::make_unique<BrotliDecompressorS>(outputChunkSize); }

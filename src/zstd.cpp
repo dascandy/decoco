@@ -67,13 +67,19 @@ struct ZstdDecompressorS : Decompressor {
     }
 
     ZSTD_outBuffer output = { out.data(), out.size(), 0 };
+    in_used += input.size - input.pos;
     auto rv = ZSTD_decompressStream(dstream, &output, &input);
+    in_used -= input.size - input.pos;
     if (ZSTD_isError(rv)) { throw std::runtime_error("ZSTD invalid data in stream"); }
     return out.subspan(0, output.pos);
   }
   ~ZstdDecompressorS() {
     ZSTD_freeDStream(dstream);
   }
+  size_t bytesUsed() const override {
+    return in_used;
+  }
+  size_t in_used = 0;
   ZSTD_DStream* dstream;
   ZSTD_inBuffer input = {};
 };

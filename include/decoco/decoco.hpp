@@ -31,6 +31,7 @@ public:
   std::vector<uint8_t> decompress(std::span<const uint8_t> in);
   virtual std::span<uint8_t> decompress(std::span<const uint8_t> in, std::span<uint8_t> out) = 0;
   virtual ~Decompressor() = default;
+  virtual size_t bytesUsed() const = 0;
 protected:
   Decompressor(size_t outputChunkSize) 
   : outputChunkSize(outputChunkSize)

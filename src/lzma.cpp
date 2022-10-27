@@ -67,13 +67,19 @@ struct LzmaDecompressorS : Decompressor {
 
     strm.avail_out = out.size();
     strm.next_out = out.data();
+    in_used += strm.avail_in;
     int ret = lzma_code(&strm, LZMA_RUN);
+    in_used -= strm.avail_in;
     assert(ret == LZMA_OK || ret == LZMA_STREAM_END);
     return out.subspan(0, out.size() - strm.avail_out);
   }
   ~LzmaDecompressorS() {
     lzma_end(&strm);
   }
+  size_t bytesUsed() const override {
+    return in_used;
+  }
+  size_t in_used = 0;
   lzma_stream strm;
 };
 

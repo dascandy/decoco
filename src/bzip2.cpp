@@ -67,14 +67,20 @@ struct Bzip2DecompressorS : Decompressor {
 
     strm.avail_out = (uint32_t)out.size();
     strm.next_out = reinterpret_cast<char*>(out.data());
+    in_used += strm.avail_in;
     int ret = BZ2_bzDecompress(&strm);
+    in_used -= strm.avail_in;
     assert(ret == BZ_OK || ret == BZ_STREAM_END);
     return out.subspan(0, out.size() - strm.avail_out);
   }
   ~Bzip2DecompressorS() {
     BZ2_bzDecompressEnd(&strm);
   }
+  size_t bytesUsed() const override {
+    return in_used;
+  }
   bz_stream strm;
+  size_t in_used = 0;
 };
 
 std::unique_ptr<Decompressor> Bzip2Decompressor(size_t outputChunkSize) { return std::make_unique<Bzip2DecompressorS>(outputChunkSize); }
