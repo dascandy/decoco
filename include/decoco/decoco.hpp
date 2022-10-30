@@ -60,8 +60,14 @@ std::unique_ptr<Decompressor> FindDecompressor(std::string_view name, size_t out
 std::unique_ptr<Decompressor> SniffDecompressor(std::span<uint8_t> file, size_t outputChunkSize = 16384);
 
 // Convenience functions
-std::vector<uint8_t> compress(std::unique_ptr<Decoco::Compressor> c, std::span<const uint8_t> in);
-std::vector<uint8_t> decompress(std::unique_ptr<Decoco::Decompressor> c, std::span<const uint8_t> in);
+std::vector<uint8_t> compress(Decoco::Compressor& c, std::span<const uint8_t> in);
+inline std::vector<uint8_t> compress(const std::unique_ptr<Decoco::Compressor>& c, std::span<const uint8_t> in) {
+  return compress(*c.get(), in);
+}
+std::vector<uint8_t> decompress(Decoco::Decompressor& c, std::span<const uint8_t> in);
+inline std::vector<uint8_t> decompress(const std::unique_ptr<Decoco::Decompressor>& c, std::span<const uint8_t> in) {
+  return decompress(*c.get(), in);
+}
 
 std::vector<uint8_t> gzip(std::span<const uint8_t> in);
 std::vector<uint8_t> bzip2(std::span<const uint8_t> in);

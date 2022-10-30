@@ -1,8 +1,8 @@
 #include <decoco/decoco.hpp>
 
-std::vector<uint8_t> Decoco::compress(std::unique_ptr<Decoco::Compressor> c, std::span<const uint8_t> in) {
-  std::vector<uint8_t> data = c->compress(in);
-  std::vector<uint8_t> end = c->flush();
+std::vector<uint8_t> Decoco::compress(Decoco::Compressor& c, std::span<const uint8_t> in) {
+  std::vector<uint8_t> data = c.compress(in);
+  std::vector<uint8_t> end = c.flush();
   data.insert(data.end(), end.begin(), end.end());
   return data;
 }
@@ -19,13 +19,13 @@ std::vector<uint8_t> Decoco::xzip(std::span<const uint8_t> in) {
   return compress(LzmaCompressor(), in);
 }
 
-std::vector<uint8_t> Decoco::decompress(std::unique_ptr<Decoco::Decompressor> c, std::span<const uint8_t> in) {
+std::vector<uint8_t> Decoco::decompress(Decoco::Decompressor& c, std::span<const uint8_t> in) {
   std::vector<uint8_t> data;
-  c->decompress(in, data);
+  c.decompress(in, data);
   while (true) {
     std::vector<uint8_t> nextbit;
     nextbit.resize(32768);
-    auto output = c->decompress({}, nextbit);
+    auto output = c.decompress({}, nextbit);
     if (output.empty()) return data;
     data.insert(data.end(), output.begin(), output.end());
   }
