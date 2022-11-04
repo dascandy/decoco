@@ -21,7 +21,12 @@ std::vector<uint8_t> Decoco::xzip(std::span<const uint8_t> in) {
 
 std::vector<uint8_t> Decoco::decompress(Decoco::Decompressor& c, std::span<const uint8_t> in) {
   std::vector<uint8_t> data;
-  c.decompress(in, data);
+  data.resize(32768);
+  auto output = c.decompress(in, data);
+  if (output.size() != data.size()) {
+    data.resize(output.size());
+    return data;
+  }
   while (true) {
     std::vector<uint8_t> nextbit;
     nextbit.resize(32768);
